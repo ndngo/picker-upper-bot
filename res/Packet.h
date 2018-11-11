@@ -1,6 +1,6 @@
 #pragma once
-#ifndef _PACKET_H_
-#define _PACKET_H_
+#ifndef _TCPPACKET_H_
+#define _TCPPACKET_H_
 #include <iostream>
 #include <stdio.h>
 #include <cstring>
@@ -9,6 +9,18 @@
  * BeagleBone
  */
 enum CmdType { DRIVE, SLEEP, STATUS, ARM, CLAW, ACK, NACK } ;
+
+/**
+ * direction constants for MotorBody
+ */ 
+const int FORWARD = 1;
+const int BACKWARD = 2;
+const int RIGHT = 3;
+const int LEFT = 4;
+const int UP = 5;
+const int DOWN = 6;
+const int OPEN = 7;
+const int CLOSE = 8;
 
 /**
  *  structure of the packet sent to the robot
@@ -26,7 +38,8 @@ struct Header {
 };
 
 /**
- * the compiler allocates 8 bytes but only 6 is used
+ * the compiler allocates 8 bytes to the size of Hder eabut only 6 is used
+ * this corrects it
  */
 const int HEADERSIZE = sizeof(Header) - 2;
 
@@ -61,4 +74,4 @@ public:
   ~Packet();
 };
 
-#endif _PACKET_H_
+#endif

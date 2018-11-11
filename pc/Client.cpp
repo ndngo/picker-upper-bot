@@ -6,7 +6,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h> 
-
+#include "../res/TCPPacket.h"
 void error(const char *msg)
 {
     perror(msg);
@@ -41,9 +41,19 @@ int main(int argc, char *argv[])
     serv_addr.sin_port = htons(portno);
     if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
         error("ERROR connecting");
+
+
+
+    TCPPacket p;
     printf("Please enter the message: ");
+
+
+
     bzero(buffer,256);
     fgets(buffer,255,stdin);
+    
+    
+    
     n = write(sockfd,buffer,strlen(buffer));
     if (n < 0) 
          error("ERROR writing to socket");

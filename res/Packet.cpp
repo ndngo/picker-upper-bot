@@ -1,4 +1,4 @@
-#include "packet.h"
+#include "TCPPacket.h"
 
 /**
  * Packet initialized to safe state
@@ -73,6 +73,7 @@ void Packet::setCmd(CmdType cmdtype) {
       cmdPacket.head.claw = 0;
       cmdPacket.head.ack = 0;
       cmdPacket.head.length = HEADERSIZE + 2 + sizeof(cmdPacket.CRC);
+      std::cout << "DRIVE" << std::endl;
       break;
     case SLEEP:
       cmdPacket.head.drive = 0;
@@ -82,6 +83,7 @@ void Packet::setCmd(CmdType cmdtype) {
       cmdPacket.head.claw = 0;
       cmdPacket.head.ack = 0;
       cmdPacket.head.length = HEADERSIZE + 2 + sizeof(cmdPacket.CRC);
+      std::cout << "SLEEP" << std::endl;
       break;
     case ARM:
       cmdPacket.head.drive = 0;
@@ -91,6 +93,7 @@ void Packet::setCmd(CmdType cmdtype) {
       cmdPacket.head.claw = 0;
       cmdPacket.head.ack = 0;
       cmdPacket.head.length = HEADERSIZE + 2 + sizeof(cmdPacket.CRC);
+      std::cout << "ARM" << std::endl;
       break;
     case CLAW:
       cmdPacket.head.drive = 1;
@@ -100,10 +103,12 @@ void Packet::setCmd(CmdType cmdtype) {
       cmdPacket.head.claw = 1;
       cmdPacket.head.ack = 0;
       cmdPacket.head.length = HEADERSIZE + 2 + sizeof(cmdPacket.CRC);
+      std::cout << "CLAW" << std::endl;
       break;
     case ACK:
       cmdPacket.head.ack = 1;
       cmdPacket.head.length = HEADERSIZE + 2 + sizeof(cmdPacket.CRC);
+      std::cout << "ACK" << std::endl;
       break;
   }
 }
