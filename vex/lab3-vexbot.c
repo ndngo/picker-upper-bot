@@ -248,11 +248,17 @@ task main() {
 		int rcvChar;
 		while(true) {
 			sendChar(uartOne, 'A');
+			delay(250);
 			sendChar(uartOne, 'B');
+			delay(250);
 			sendChar(uartOne, 'C');
+			delay(250);
 			sendChar(uartOne, 'D');
+			delay(250);
 			sendChar(uartOne, 'E');
+			delay(250);
 			sendChar(uartOne, 'F');
+			delay(250);
 			sendChar(uartOne, 'G');
 
 			//	motor[leftMotor] = 50;
