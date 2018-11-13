@@ -64,12 +64,17 @@ int main() {
   tcflush(uart_stream, TCIFLUSH);
   tcsetattr(uart_stream, TCSANOW, &options);
 
-  char buffer[256] = "hello world";
+  char txBuffer[256] = "hello robot\0";
+
+  char rxBuffer[256];
 
   while (1) {
-//    txBytes(uart_stream, buffer, sizeof(buffer));
-    rxBytes(uart_stream, buffer, sizeof(buffer));
-//    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    std::thread rxThread(rxBytes, uart_stream, rxBuffer, sizeof(rxBuffer));
+//    txBytes(uart_stream, txBuffer, sizeof(txBuffer));
+    std::cout << rxBuffer << std::endl;
+//    std::cout << txBuffer << std::endl;
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
   }
 
   return 0;

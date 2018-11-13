@@ -236,6 +236,21 @@ struct Data {
 	int battery;
 }
 
+int rcvChar;
+bool run;
+
+task UARTRx() {
+  int rcvChar = -1;
+	while (1) {
+		rcvChar = getChar(uartOne);
+		if (rcvChar != -1) {
+			sendChar(uartOne, 'B');
+			motor[leftMotor] = 50;
+			motor[rightMotor] = 50;
+		}
+	}
+}
+
 task main() {
     //Assume that the robot starts its journey facing the correct direction
     //What are we assuming about the arm?
@@ -245,7 +260,9 @@ task main() {
 		resetMotors();
 		configureSerialPort(uartOne, uartUserControl);
 		setBaudRate(uartOne, baudRate115200);
-		int rcvChar;
+
+		startTask(UARTRx);
+
 		while(true) {
 			sendChar(uartOne, 'A');
 			delay(250);
@@ -260,23 +277,7 @@ task main() {
 			sendChar(uartOne, 'F');
 			delay(250);
 			sendChar(uartOne, 'G');
-
-			//	motor[leftMotor] = 50;
-			//	motor[rightMotor] = 50;
-		/*
-			rcvChar = getChar(uartOne);
-		 	if(rcvChar == -1) {
-			  wait1Msec(3);
-			  continue;
-			}
-			if (rcvChar == 1) {
-				motor[leftMotor] = 50;
-				motor[rightMotor] = 50;
-				wait10Msec(5);
-			}
-			*/
 		}
-
 
 
 
