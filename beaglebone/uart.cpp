@@ -24,6 +24,7 @@ struct PktDef
 
 void txBytes(int &uart, void *buffer, size_t size) {
   if (uart != -1) {
+    std::cout << "sending: " << (char*)buffer << std::endl;
     int count = write(uart, buffer, size);
     if (count < 0) {
       std::cout << "error:failed to tx data" << std::endl;
@@ -41,12 +42,6 @@ void rxBytes(int &uart, void *buffer, size_t maxSize) {
   }
 }
 
-char* receiveCommand() {
-  char txBuffer[256];
-  std::cin >> txBuffer[0];
-  txBuffer[1] = '\0';
-  return txBuffer;
- }
 
 int main() {
 
@@ -71,13 +66,16 @@ int main() {
   tcflush(uart_stream, TCIFLUSH);
   tcsetattr(uart_stream, TCSANOW, &options);
 
-  char rxBuffer[256];
+  
+  char rxBuffer[1];
+  char txBuffer[1];
 
+ // txBuffer[1] = '\0';
   while (1) {
-    char* txBuffer = receiveCommand();
+    std::cin >> txBuffer[0];
     txBytes(uart_stream, txBuffer, sizeof(txBuffer));
-    rxBytes(uart_stream, rxBuffer, sizeof(txBuffer));
-    std::cout << rxBuffer << std::endl;
+//    rxBytes(uart_stream, rxBuffer, sizeof(txBuffer));
+//    std::cout << rxBuffer << std::endl;
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
 
