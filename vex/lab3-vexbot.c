@@ -29,7 +29,7 @@ float objTape = 500;
 int threshold = 1800;
 
 //Globals for data transmission
-int rcvChar;
+char rcvChar;
 bool run;
 
 struct Data {
@@ -41,18 +41,37 @@ struct Data {
 	int battery;
 }
 
+
 task UARTRx() {
-  int rcvChar = -1;
-	while (1) {
-		rcvChar = getChar(uartOne);
-		if (rcvChar != -1) {
-			sendChar(uartOne, rcvChar);
-			sendChar(uartOne, 'B');
-			motor[leftMotor] = 50;
-			motor[rightMotor] = 50;
-			rcvChar = -1;
+  char rcvChar = 'f';
+	while(1){
+		wait1Msec(500);
+  	rcvChar = getChar(uartOne);
+		wait1Msec(50);
+		switch(rcvChar){
+			case 'w':
+				writeDebugStreamLine("This is the buffer value: %c", rcvChar);
+				break;
+			case 'a':
+				writeDebugStreamLine("This is the buffer value: %c", rcvChar);
+				break;
+			case 's':
+				writeDebugStreamLine("This is the buffer value: %c", rcvChar);
+				break;
+			case 'd':
+				writeDebugStreamLine("This is the buffer value: %c", rcvChar);
+				break;
+			case 'e':
+				writeDebugStreamLine("This is the buffer value: %c", rcvChar);
+				break;
+			case 'r':
+				writeDebugStreamLine("This is the buffer value: %c", rcvChar);
+				break;
+			default:
+				break;
 		}
-	}
+		}
+
 }
 
 task main() {
@@ -60,20 +79,7 @@ task main() {
 		setBaudRate(uartOne, baudRate115200);
 
 		startTask(UARTRx);
-
-		while(true) {
-			sendChar(uartOne, 'A');
-			delay(250);
-			sendChar(uartOne, 'B');
-			delay(250);
-			sendChar(uartOne, 'C');
-			delay(250);
-			sendChar(uartOne, 'D');
-			delay(250);
-			sendChar(uartOne, 'E');
-			delay(250);
-			sendChar(uartOne, 'F');
-			delay(250);
-			sendChar(uartOne, 'G');
+		while(true){
 		}
+
 }

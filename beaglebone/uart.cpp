@@ -75,8 +75,8 @@ int main() {
 
   while (1) {
     char* txBuffer = receiveCommand();
-    rxBytes(uart_stream, rxBuffer, sizeof(txBuffer));
     txBytes(uart_stream, txBuffer, sizeof(txBuffer));
+    rxBytes(uart_stream, rxBuffer, sizeof(txBuffer));
     std::cout << rxBuffer << std::endl;
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
