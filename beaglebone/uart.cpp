@@ -41,6 +41,13 @@ void rxBytes(int &uart, void *buffer, size_t maxSize) {
   }
 }
 
+char* receiveCommand() {
+  char txBuffer[256];
+  std::cin >> txBuffer[0];
+  txBuffer[1] = '\0';
+  return txBuffer;
+ }
+
 int main() {
 
   // open uart connection
@@ -64,17 +71,14 @@ int main() {
   tcflush(uart_stream, TCIFLUSH);
   tcsetattr(uart_stream, TCSANOW, &options);
 
-  char txBuffer[256] = "hello robot\0";
-
   char rxBuffer[256];
 
   while (1) {
-    std::thread rxThread(rxBytes, uart_stream, rxBuffer, sizeof(rxBuffer));
-//    txBytes(uart_stream, txBuffer, sizeof(txBuffer));
+    char* txBuffer = receiveCommand();
+    rxBytes(uart_stream, rxBuffer, sizeof(txBuffer));
+    txBytes(uart_stream, txBuffer, sizeof(txBuffer));
     std::cout << rxBuffer << std::endl;
-//    std::cout << txBuffer << std::endl;
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
   }
 
   return 0;
