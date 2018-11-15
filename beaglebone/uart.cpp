@@ -66,7 +66,6 @@ int main() {
   tcflush(uart_stream, TCIFLUSH);
   tcsetattr(uart_stream, TCSANOW, &options);
 
-  
   char rxBuffer[1];
   char txBuffer[1];
 
