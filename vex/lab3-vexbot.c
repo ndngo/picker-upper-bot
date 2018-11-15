@@ -139,19 +139,20 @@ void raiseArm(){
   wait1Msec(500);
 }
 
-// function that uses moveMotorTarget to move some distance in feet
-//
-// void translate
-// void marchOnwards
+/** drives the robot at a specified distance with the specified speed
+ *nnegative distances move the robot backwards
+ *nsign of the speed seems to have no effect
+ *ndrive(1, 50); // move forward 1 foot at 50 speed
+ *ndrive(1, -50); // move forward 1 foot at 50 speed
+ *ndrive(-1, 50); // move backwards 1 foot at 50 speed
+ *drive(-1, -50); // move backwards 1 foot at 50 speed
+ */
 void drive(float feet, float speed) {
 	resetMotorEncoder(leftMotor);
 	resetMotorEncoder(rightMotor);
-
 	int distance = 500 * feet;
-
-	moveMotorTarget(leftMotor, distance, 50);
-	moveMotorTarget(rightMotor, distance, 50);
-
+	moveMotorTarget(leftMotor, distance, speed, false);
+	moveMotorTarget(rightMotor, distance, speed, false);
 }
 
 //This thread will loop so long as the program is running
@@ -180,7 +181,8 @@ task UARTRx() {
 			case 's':
 				// backward
 				writeDebugStreamLine("Drive backwards.");
-				driveBackwards();
+//				driveBackwards();
+				drive(-1, 50);
 				break;
 
 			case 'd':
