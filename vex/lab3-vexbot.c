@@ -158,8 +158,6 @@ void drive(float feet, float speed) {
 //This thread will loop so long as the program is running
 task UARTRx() {
  	while(true){
- 		//It will always check first if there are lines within its line of sight
-// 		avoidLines();
 		char rcvChar;
   	rcvChar = getChar(uartOne);
   	wait1Msec(30);
@@ -226,7 +224,7 @@ task main() {
 
 	configureSerialPort(uartOne, uartUserControl);
 	setBaudRate(uartOne, baudRate115200);
-
+	startTask(avoidLines());
 	startTask(UARTRx);
 
 	while(true){
