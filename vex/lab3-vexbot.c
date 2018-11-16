@@ -155,6 +155,12 @@ void drive(float feet, float speed) {
 	moveMotorTarget(rightMotor, distance, speed, false);
 }
 
+task autonomy(){
+	while(true){
+		avoidLines();
+	}
+}
+
 //This thread will loop so long as the program is running
 task UARTRx() {
  	while(true){
@@ -224,7 +230,7 @@ task main() {
 
 	configureSerialPort(uartOne, uartUserControl);
 	setBaudRate(uartOne, baudRate115200);
-	startTask(avoidLines());
+	startTask(autonomy);
 	startTask(UARTRx);
 
 	while(true){
