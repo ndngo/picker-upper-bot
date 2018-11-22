@@ -2,6 +2,7 @@
 
 //A global useful because the holding can be done in its own thread
 int isHolding = 0;
+int armThreshold = 0;//this will have to be determined with the robot present
 
 
 task adjustArm(){
