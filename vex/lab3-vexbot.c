@@ -244,13 +244,15 @@ task adjustArm(){
 task frontCollisionStop() {
 	while(1) {
 		wait1Msec(100);
-		if (SensorValue[sonarIN] < 12) {
+		if (SensorValue[sonarIN] < 15) {
 			writeDebugStreamLine("Collision imminent! Stopping...");
 			motor[rightMotor] = 0;
 			motor[leftMotor] = 0;
 		}
 	}
 }
+
+
 
 task main() {
 	writeDebugStreamLine("VEX Robot is starting up.");
