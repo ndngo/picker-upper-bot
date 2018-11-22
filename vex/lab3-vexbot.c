@@ -123,6 +123,7 @@ void lowerArm(){
 	int power;
   int potentiometer;
 
+  isHolding = 0;
   power = 21;
   potentiometer = 1000;
   motor[armMotor] = power;
@@ -231,9 +232,12 @@ task UARTRx() {
  * Adjusts the arm such that the arm is always raised while it is grabbing something
  */
 task adjustArm(){
-  while(isHolding){
-  	wait10Msec(100);
-  	raiseArm();
+  while(1){
+  	if (isHolding) {
+	  	wait10Msec(50);
+	  	writeDebugStreamLine("adjusting arm");
+	  	raiseArm();
+  	}
   }
 }
 
