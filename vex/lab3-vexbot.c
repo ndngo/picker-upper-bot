@@ -26,7 +26,7 @@ float outsideTape = 500;
 float objTape = 500;
 int threshold = 1800;
 
-const int ARM_UP_POTENTIO = 420;
+const int ARM_UP_POTENTIO = 0;
 //Non-autonomous logic
 
 // Not sure why I made this, slows down a tiny bit towards the end of the distance
@@ -120,8 +120,8 @@ void lowerArm(){
 	int power;
   int potentiometer;
 
-  power = 10;
-  potentiometer = 800;
+  power = 21;
+  potentiometer = 1000;
   motor[armMotor] = power;
 	writeDebugStreamLine("potentiometer reading: %d", SensorValue[potentio]);
   while(SensorValue(sensorPotentiometer) > potentiometer){
@@ -138,7 +138,7 @@ void raiseArm(){
   int potentiometer;
 
 	power = -31;
-  potentiometer = 420;
+  potentiometer = ARM_UP_POTENTIO;
   motor[armMotor] = power;
   writeDebugStreamLine("potentiometer reading: %d", SensorValue[potentio]);
 	while(SensorValue[potentio] > potentiometer){
@@ -183,7 +183,7 @@ task UARTRx() {
 			case 'a':
 			  // turn left
 				writeDebugStreamLine("Turn left.");
-				turn(90, -50);
+				turn(30, -50);
 				break;
 
 			case 's':
@@ -196,7 +196,7 @@ task UARTRx() {
 			case 'd':
 				// turn right
 				writeDebugStreamLine("Turn right.");
-				turn(90, 50);
+				turn(30, 50);
 				break;
 
 			case 'e':
