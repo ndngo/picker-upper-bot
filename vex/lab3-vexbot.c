@@ -27,8 +27,11 @@ float objTape = 500;
 int threshold = 1800;
 const int ARM_UP_POTENTIO = 0;
 int isHolding = 0;
-
+int isObstacleEncountered = 0;
 int armThreshold = 0;//this will have to be determined with the robot present
+char rcvChar;
+
+
 //Non-autonomous logic
 
 // Not sure why I made this, slows down a tiny bit towards the end of the distance
@@ -171,7 +174,6 @@ task UARTRx() {
  	while(true){
  		//It will always check first if there are lines within its line of sight
 // 		avoidLines();
-		char rcvChar;
   	rcvChar = getChar(uartOne);
   	wait1Msec(30);
 
@@ -180,7 +182,9 @@ task UARTRx() {
 				// forward
 				writeDebugStreamLine("Drive forward.");
 //				driveForward(1, 50);
-				drive(1, 50);
+					if(isObstacleEncountered == 0) {
+						drive(1, 50);
+					}
 				break;
 
 			case 'a':
@@ -245,14 +249,16 @@ task adjustArm(){
 task frontCollisionStop() {
 	while(1) {
 		wait1Msec(100);
-		if (SensorValue[sonarIN] < 15) {
+		if (SensorValue[sonarIN] < 15 && motor[rightMotor] > 0 && motor[leftMotor] > 0) {
 			writeDebugStreamLine("Collision imminent! Stopping...");
 
+			// if motors are going forward, set to 0, but if they are going backwards then allow to move
 			motor[rightMotor] = 0;
 			motor[leftMotor] = 0;
 		}
 	}
 }
+
 
 
 
