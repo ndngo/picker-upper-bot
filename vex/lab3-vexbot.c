@@ -26,6 +26,7 @@ float outsideTape = 500;
 float objTape = 500;
 int threshold = 1800;
 
+const int ARM_UP_POTENTIO = 0;
 //Non-autonomous logic
 
 // Not sure why I made this, slows down a tiny bit towards the end of the distance
@@ -103,12 +104,14 @@ void avoidLines(){
 
 void openHand(){
 	motor[handMotor] = 63;
-	wait1Msec(1000);
+	wait1Msec(500);
+	motor[handMotor] = 0;
 }
 
 void closeHand(){
 	motor[handMotor] = -63;
-	wait1Msec(1000);
+	wait1Msec(150);
+	motor[handMotor] = 0;
 }
 
 
@@ -117,35 +120,40 @@ void lowerArm(){
 	int power;
   int potentiometer;
 
-  power = -31;
-  potentiometer = 420;
+  power = 21;
+  potentiometer = 1000;
   motor[armMotor] = power;
-	if(SensorValue(sensorPotentiometer) > potentiometer){
+	writeDebugStreamLine("potentiometer reading: %d", SensorValue[potentio]);
+  while(SensorValue(sensorPotentiometer) > potentiometer){
   	motor[armMotor] = power;
   }
   wait1Msec(1000);
- }
+  motor[armMotor] = 0;
+}
+
+
 
 void raiseArm(){
   int power;
   int potentiometer;
 
-	power = 31;
-  potentiometer = 1010;
+	power = -31;
+  potentiometer = ARM_UP_POTENTIO;
   motor[armMotor] = power;
-	if(SensorValue(sensorPotentiometer) < potentiometer){
+  writeDebugStreamLine("potentiometer reading: %d", SensorValue[potentio]);
+	while(SensorValue[potentio] > potentiometer){
   	motor[armMotor] = power;
   }
-  wait1Msec(500);
-}
+  motor[armMotor] = 0;
 
+}
 /** drives the robot at a specified distance with the specified speed
- *nnegative distances move the robot backwards
- *nsign of the speed seems to have no effect
- *ndrive(1, 50); // move forward 1 foot at 50 speed
- *ndrive(1, -50); // move forward 1 foot at 50 speed
- *ndrive(-1, 50); // move backwards 1 foot at 50 speed
- *drive(-1, -50); // move backwards 1 foot at 50 speed
+ * negative distances move the robot backwards
+ * sign of the speed seems to have no effect
+ * drive(1, 50); // move forward 1 foot at 50 speed
+ * drive(1, -50); // move forward 1 foot at 50 speed
+ * drive(-1, 50); // move backwards 1 foot at 50 speed
+ * drive(-1, -50); // move backwards 1 foot at 50 speed
  */
 void drive(float feet, float speed) {
 	resetMotorEncoder(leftMotor);
@@ -175,7 +183,7 @@ task UARTRx() {
 			case 'a':
 			  // turn left
 				writeDebugStreamLine("Turn left.");
-				turn(90, -50);
+				turn(30, -50);
 				break;
 
 			case 's':
@@ -188,7 +196,7 @@ task UARTRx() {
 			case 'd':
 				// turn right
 				writeDebugStreamLine("Turn right.");
-				turn(90, 50);
+				turn(30, 50);
 				break;
 
 			case 'e':
