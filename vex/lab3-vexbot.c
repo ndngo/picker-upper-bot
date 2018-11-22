@@ -233,22 +233,33 @@ task UARTRx() {
  */
 task adjustArm(){
   while(1){
+	  wait10Msec(50);
   	if (isHolding) {
-	  	wait10Msec(50);
 	  	writeDebugStreamLine("adjusting arm");
 	  	raiseArm();
   	}
   }
 }
 
+task frontCollisionStop() {
+	while(1) {
+		wait1Msec(100);
+		if (SensorValue[sonarIN] < 12) {
+			writeDebugStreamLine("Collision imminent! Stopping...");
+			motor[rightMotor] = 0;
+			motor[leftMotor] = 0;
+		}
+	}
+}
+
 task main() {
+	writeDebugStreamLine("VEX Robot is starting up.");
 	resetMotorEncoder(leftMotor);
 	resetMotorEncoder(rightMotor);
-	wait1Msec(3000);
-
 	configureSerialPort(uartOne, uartUserControl);
 	setBaudRate(uartOne, baudRate115200);
 
+	startTask(frontCollisionStop);
 	startTask(UARTRx);
   startTask(adjustArm);
 	while(true){
