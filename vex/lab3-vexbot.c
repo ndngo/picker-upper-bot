@@ -25,8 +25,9 @@ float ground= 500;
 float outsideTape = 500;
 float objTape = 500;
 int threshold = 1800;
-
 const int ARM_UP_POTENTIO = 0;
+int isHolding = 0;
+int armThreshold = 0;//this will have to be determined with the robot present
 //Non-autonomous logic
 
 // Not sure why I made this, slows down a tiny bit towards the end of the distance
@@ -106,12 +107,14 @@ void openHand(){
 	motor[handMotor] = 63;
 	wait1Msec(500);
 	motor[handMotor] = 0;
+	isHolding = 0;
 }
 
 void closeHand(){
 	motor[handMotor] = -63;
 	wait1Msec(150);
 	motor[handMotor] = 0;
+	isHolding = 1;
 }
 
 
@@ -123,7 +126,6 @@ void lowerArm(){
   power = 21;
   potentiometer = 1000;
   motor[armMotor] = power;
-	writeDebugStreamLine("potentiometer reading: %d", SensorValue[potentio]);
   while(SensorValue(sensorPotentiometer) > potentiometer){
   	motor[armMotor] = power;
   }
@@ -140,7 +142,6 @@ void raiseArm(){
 	power = -31;
   potentiometer = ARM_UP_POTENTIO;
   motor[armMotor] = power;
-  writeDebugStreamLine("potentiometer reading: %d", SensorValue[potentio]);
 	while(SensorValue[potentio] > potentiometer){
   	motor[armMotor] = power;
   }
@@ -226,6 +227,15 @@ task UARTRx() {
 		}
 	}
 }
+/**
+ * Adjusts the arm such that the arm is always raised while it is grabbing something
+ */
+task adjustArm(){
+  while(isHolding){
+  	wait10Msec(100);
+  	raiseArm();
+  }
+}
 
 task main() {
 	resetMotorEncoder(leftMotor);
@@ -236,8 +246,8 @@ task main() {
 	setBaudRate(uartOne, baudRate115200);
 
 	startTask(UARTRx);
-
+  startTask(adjustArm);
 	while(true){
-
+		// TODO: send telemetry to BeagleBone
 	}
 }
