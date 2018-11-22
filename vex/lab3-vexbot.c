@@ -27,6 +27,7 @@ float objTape = 500;
 int threshold = 1800;
 const int ARM_UP_POTENTIO = 0;
 int isHolding = 0;
+
 int armThreshold = 0;//this will have to be determined with the robot present
 //Non-autonomous logic
 
@@ -185,7 +186,7 @@ task UARTRx() {
 			case 'a':
 			  // turn left
 				writeDebugStreamLine("Turn left.");
-				turn(30, -50);
+				turn(20, -50);
 				break;
 
 			case 's':
@@ -198,7 +199,7 @@ task UARTRx() {
 			case 'd':
 				// turn right
 				writeDebugStreamLine("Turn right.");
-				turn(30, 50);
+				turn(20, 50);
 				break;
 
 			case 'e':
@@ -246,6 +247,7 @@ task frontCollisionStop() {
 		wait1Msec(100);
 		if (SensorValue[sonarIN] < 15) {
 			writeDebugStreamLine("Collision imminent! Stopping...");
+
 			motor[rightMotor] = 0;
 			motor[leftMotor] = 0;
 		}
