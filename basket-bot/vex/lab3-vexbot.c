@@ -25,8 +25,13 @@ float ground= 500;
 float outsideTape = 500;
 float objTape = 500;
 int threshold = 1800;
-
 const int ARM_UP_POTENTIO = 0;
+int isHolding = 0;
+int isObstacleEncountered = 0;
+int armThreshold = 0;//this will have to be determined with the robot present
+char rcvChar;
+
+
 //Non-autonomous logic
 
 // Not sure why I made this, slows down a tiny bit towards the end of the distance
@@ -106,12 +111,14 @@ void openHand(){
 	motor[handMotor] = 63;
 	wait1Msec(500);
 	motor[handMotor] = 0;
+	isHolding = 0;
 }
 
 void closeHand(){
 	motor[handMotor] = -63;
 	wait1Msec(150);
 	motor[handMotor] = 0;
+	isHolding = 1;
 }
 
 
@@ -120,10 +127,10 @@ void lowerArm(){
 	int power;
   int potentiometer;
 
+  isHolding = 0;
   power = 21;
   potentiometer = 1000;
   motor[armMotor] = power;
-	writeDebugStreamLine("potentiometer reading: %d", SensorValue[potentio]);
   while(SensorValue(sensorPotentiometer) > potentiometer){
   	motor[armMotor] = power;
   }
@@ -140,7 +147,6 @@ void raiseArm(){
 	power = -31;
   potentiometer = ARM_UP_POTENTIO;
   motor[armMotor] = power;
-  writeDebugStreamLine("potentiometer reading: %d", SensorValue[potentio]);
 	while(SensorValue[potentio] > potentiometer){
   	motor[armMotor] = power;
   }
@@ -168,7 +174,6 @@ task UARTRx() {
  	while(true){
  		//It will always check first if there are lines within its line of sight
 // 		avoidLines();
-		char rcvChar;
   	rcvChar = getChar(uartOne);
   	wait1Msec(30);
 
@@ -177,13 +182,15 @@ task UARTRx() {
 				// forward
 				writeDebugStreamLine("Drive forward.");
 //				driveForward(1, 50);
-				drive(1, 50);
+					if(isObstacleEncountered == 0) {
+						drive(1, 50);
+					}
 				break;
 
 			case 'a':
 			  // turn left
 				writeDebugStreamLine("Turn left.");
-				turn(30, -50);
+				turn(20, -50);
 				break;
 
 			case 's':
@@ -196,7 +203,7 @@ task UARTRx() {
 			case 'd':
 				// turn right
 				writeDebugStreamLine("Turn right.");
-				turn(30, 50);
+				turn(20, 50);
 				break;
 
 			case 'e':
@@ -226,18 +233,46 @@ task UARTRx() {
 		}
 	}
 }
+/**
+ * Adjusts the arm such that the arm is always raised while it is grabbing something
+ */
+task adjustArm(){
+  while(1){
+	  wait10Msec(50);
+  	if (isHolding) {
+	  	writeDebugStreamLine("adjusting arm");
+	  	raiseArm();
+  	}
+  }
+}
+
+task frontCollisionStop() {
+	while(1) {
+		wait1Msec(100);
+		if (SensorValue[sonarIN] < 15 && motor[rightMotor] > 0 && motor[leftMotor] > 0) {
+			writeDebugStreamLine("Collision imminent! Stopping...");
+
+			// if motors are going forward, set to 0, but if they are going backwards then allow to move
+			motor[rightMotor] = 0;
+			motor[leftMotor] = 0;
+		}
+	}
+}
+
+
+
 
 task main() {
+	writeDebugStreamLine("VEX Robot is starting up.");
 	resetMotorEncoder(leftMotor);
 	resetMotorEncoder(rightMotor);
-	wait1Msec(3000);
-
 	configureSerialPort(uartOne, uartUserControl);
 	setBaudRate(uartOne, baudRate115200);
 
+	startTask(frontCollisionStop);
 	startTask(UARTRx);
-
+  startTask(adjustArm);
 	while(true){
-
+		// TODO: send telemetry to BeagleBone
 	}
 }
