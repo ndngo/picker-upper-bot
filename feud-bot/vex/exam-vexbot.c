@@ -7,6 +7,7 @@
 #pragma config(Sensor, in5,    leftSensor,     sensorLineFollower)
 #pragma config(Sensor, dgtl1,  button,         sensorDigitalIn)
 #pragma config(Sensor, dgtl2,  sonarIN,        sensorSONAR_cm)
+#pragma config(Sensor, dgtl4,  touchSensor,    sensorTouch)
 #pragma config(Sensor, I2C_1,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Sensor, I2C_2,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Motor,  port1,           leftMotor,     tmotorVex393_HBridge, PIDControl, reversed, driveLeft, encoderPort, I2C_2)
@@ -29,8 +30,6 @@ int isHolding = 0;
 int isObstacleEncountered = 0;
 int armThreshold = 0;
 char rcvChar;
-int box;
-
 
 float driveControl(int distance, int encoder){
 	return 0.8 * (distance - abs(encoder));
@@ -128,6 +127,15 @@ void raiseArm(){
 
 }
 
+void driveUntil(int numOfLines){
+		int i = 0;
+		while(i < numOfLines){
+				motor[leftMotor] = 127;
+				motor[rightMotor] = 127;
+				wait1Msec(30);
+			}
+}
+
 /** drives the robot at a specified distance with the specified speed
  * negative distances move the robot backwards
  * sign of the speed seems to have no effect
@@ -145,20 +153,32 @@ void drive(float feet, float speed) {
 }
 
 void followLines(){
-	  while(true){
+	  while(SensorValue(rightSensor) < threshold || SensorValue(middleSensor) < threshold || SensorValue(leftSensor) < threshold){
 	    if(SensorValue(rightSensor) > threshold){
-	      motor[leftMotor]  = 63;
+	      motor[leftMotor]  = 127;
 	      motor[rightMotor] = 0;
 	    }
 	    if(SensorValue(middleSensor) > threshold){
-	      motor[leftMotor]  = 63;
-	      motor[rightMotor] = 63;
+	      motor[leftMotor]  = 127;
+	      motor[rightMotor] = 127;
 	    }
 	    if(SensorValue(leftSensor) > threshold){
 	      motor[leftMotor]  = 0;
-	      motor[rightMotor] = 63;
+	      motor[rightMotor] = 127;
 	    }
   }
+ }
+
+ task bumper(){
+ 	while(true){
+ 		if(SensorValue(touchSensor) != 0)	{
+ 			wait1Msec(30);
+ 			motor[leftMotor] = 0;
+ 			motor[rightMotor] = 0;
+ 			wait1Msec(30);
+ 			drive(-1,-90);
+ 		}
+ 	}
  }
 
 //This thread will loop so long as the program is running
@@ -167,26 +187,46 @@ task userInput() {
  		rcvChar = getChar(uartOne);
  		wait1Msec(30);
  		switch(rcvChar) {
- 			 case '1':
- 				box = 1;
- 				break;
- 			case '2':
- 				box = 0;
- 				break;
  			case 'a':
  				writeDebugStreamLine("a");
+				driveUntil(3);
+				turn(-90, 60);
+				followLines();
+				driveUntil(1);
+				drive(1, 40);
+				raiseArm();
  				break;
  			case 'b':
  				writeDebugStreamLine("b");
+ 				driveUntil(1);
+ 				turn(-90, 60);
+ 				followLines();
+ 				driveUntil(1);
+ 				drive(1, 40);
+ 				raiseArm();
  				break;
  			case 'c':
  				writeDebugStreamLine("c");
+ 				driveUntil(1);
+ 				turn(90, 60);
+ 				driveUntil(1);
+ 				drive(1, 40);
+ 				raiseArm();
  				break;
  			case 'd':
  				writeDebugStreamLine("d");
+ 				driveUntil(3);
+ 				turn(90, 60);
+ 				driveUntil(1);
+ 				drive(1, 40);
+ 				raiseArm();
  				break;
  			case 'x':
  				writeDebugStreamLine("x");
+ 				motor[rightMotor] = 0;
+ 				motor[leftMotor] = 0;
+ 				motor[armMotor] = 0;
+ 				motor[handMotor] = 0;
 				break;
 			case 'r':
 				writeDebugStreamLine("raise");
@@ -200,6 +240,7 @@ task userInput() {
 		}
 	}
 }
+
 task frontCollisionStop() {
 	while(true) {
 		wait1Msec(100);
@@ -222,6 +263,7 @@ task main() {
 
 	startTask(frontCollisionStop);
 	startTask(userInput);
+	startTask(bumper);
 	while(true){
 
 	}
