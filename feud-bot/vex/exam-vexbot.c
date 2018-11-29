@@ -19,22 +19,19 @@
 //Globals
 float rightAngle = 510;
 int oneFoot = 500;
-//sensor value for driving
-float ground= 500;
-//sensor value for tape/border
+float ground = 500;
 float outsideTape = 500;
 float objTape = 500;
 int threshold = 1800;
-const int ARM_UP_POTENTIO = 288;
+const int ARM_UP_POTENTIO = 750;
+const int ARM_DOWN_POTENTIO = 800;
 int isHolding = 0;
 int isObstacleEncountered = 0;
-int armThreshold = 0;//this will have to be determined with the robot present
+int armThreshold = 0;
 char rcvChar;
+int box;
 
 
-//Non-autonomous logic
-
-// Not sure why I made this, slows down a tiny bit towards the end of the distance
 float driveControl(int distance, int encoder){
 	return 0.8 * (distance - abs(encoder));
 }
@@ -87,24 +84,6 @@ void driveBackwards() {
 	// maintain speed while motor encoder counts are less that the distance
 }
 
-
-// Autonomous Logic
-
-void avoidLines(){
-	if(SensorValue(rightSensor) > threshold){
-		turn(40, -40);
-	}
-	else if(SensorValue(leftSensor) > threshold){
-		turn(40, 40);
-	}
-	else if(SensorValue(middleSensor) > threshold){
-		driveBackwards();
-	}
-	wait1Msec(10);
-}
-
-
-
 //Claw and arm logic
 
 void openHand(){
@@ -122,7 +101,6 @@ void closeHand(){
 }
 
 
-
 void lowerArm(){
 	int power;
   int potentiometer;
@@ -131,28 +109,25 @@ void lowerArm(){
   power = 21;
   potentiometer = 1000;
   motor[armMotor] = power;
-  while(SensorValue(sensorPotentiometer) > potentiometer){
+  while(SensorValue[potentio] < ARM_DOWN_POTENTIO){
   	motor[armMotor] = power;
   }
   wait1Msec(1000);
   motor[armMotor] = 0;
 }
 
-
-
 void raiseArm(){
   int power;
   int potentiometer;
-
 	power = -31;
-  potentiometer = ARM_UP_POTENTIO;
   motor[armMotor] = power;
-	while(SensorValue[potentio] > potentiometer){
+	while(SensorValue[potentio] > ARM_UP_POTENTIO){
   	motor[armMotor] = power;
   }
   motor[armMotor] = 0;
 
 }
+
 /** drives the robot at a specified distance with the specified speed
  * negative distances move the robot backwards
  * sign of the speed seems to have no effect
@@ -169,85 +144,64 @@ void drive(float feet, float speed) {
 	moveMotorTarget(rightMotor, distance, speed, false);
 }
 
+void followLines(){
+	  while(true){
+	    if(SensorValue(rightSensor) > threshold){
+	      motor[leftMotor]  = 63;
+	      motor[rightMotor] = 0;
+	    }
+	    if(SensorValue(middleSensor) > threshold){
+	      motor[leftMotor]  = 63;
+	      motor[rightMotor] = 63;
+	    }
+	    if(SensorValue(leftSensor) > threshold){
+	      motor[leftMotor]  = 0;
+	      motor[rightMotor] = 63;
+	    }
+  }
+ }
+
 //This thread will loop so long as the program is running
-task UARTRx() {
- 	while(true){
- 		//It will always check first if there are lines within its line of sight
-// 		avoidLines();
-  	rcvChar = getChar(uartOne);
-  	wait1Msec(30);
-
-		switch(rcvChar){
-			case 'w':
-				// forward
-				writeDebugStreamLine("Drive forward.");
-//				driveForward(1, 50);
-					if(isObstacleEncountered == 0) {
-						drive(1, 50);
-					}
+task userInput() {
+	while(true){
+ 		rcvChar = getChar(uartOne);
+ 		wait1Msec(30);
+ 		switch(rcvChar) {
+ 			 case '1':
+ 				box = 1;
+ 				break;
+ 			case '2':
+ 				box = 0;
+ 				break;
+ 			case 'a':
+ 				writeDebugStreamLine("a");
+ 				break;
+ 			case 'b':
+ 				writeDebugStreamLine("b");
+ 				break;
+ 			case 'c':
+ 				writeDebugStreamLine("c");
+ 				break;
+ 			case 'd':
+ 				writeDebugStreamLine("d");
+ 				break;
+ 			case 'x':
+ 				writeDebugStreamLine("x");
 				break;
-
-			case 'a':
-			  // turn left
-				writeDebugStreamLine("Turn left.");
-				turn(20, -50);
-				break;
-
-			case 's':
-				// backward
-				writeDebugStreamLine("Drive backwards.");
-//				driveBackwards();
-				drive(-1, 50);
-				break;
-
-			case 'd':
-				// turn right
-				writeDebugStreamLine("Turn right.");
-				turn(20, 50);
-				break;
-
-			case 'e':
-				// Lowers arm
-				writeDebugStreamLine("Lower arm.");
-				lowerArm();
-				break;
-
 			case 'r':
-				// Raises arm
-				writeDebugStreamLine("Raise arm.");
+				writeDebugStreamLine("raise");
 				raiseArm();
 				break;
-
-			case 'f':
-				//opens claw
-				writeDebugStreamLine("Open hand.");
-				openHand();
+			case 'e':
+				writeDebugStreamLine("lower");
+				lowerArm();
 				break;
-
-			case 'g':
-				writeDebugStreamLine("Close hand.");
-				closeHand();
-				break;
-
-			default:
+ 			default:
 		}
 	}
 }
-/**
- * Adjusts the arm such that the arm is always raised while it is grabbing something
- */
-task adjustArm(){
-  while(1){
-	  wait10Msec(50);
-  	if (isHolding) {
-	  	writeDebugStreamLine("adjusting arm");
-	  	raiseArm();
-  	}
-  }
-}
-
 task frontCollisionStop() {
-	while(1) {
+	while(true) {
 		wait1Msec(100);
 		if (SensorValue[sonarIN] < 15 && motor[rightMotor] > 0 && motor[leftMotor] > 0) {
 			writeDebugStreamLine("Collision imminent! Stopping...");
@@ -259,9 +213,6 @@ task frontCollisionStop() {
 	}
 }
 
-
-
-
 task main() {
 	writeDebugStreamLine("VEX Robot is starting up.");
 	resetMotorEncoder(leftMotor);
@@ -270,9 +221,8 @@ task main() {
 	setBaudRate(uartOne, baudRate115200);
 
 	startTask(frontCollisionStop);
-	startTask(UARTRx);
-  startTask(adjustArm);
+	startTask(userInput);
 	while(true){
-		// TODO: send telemetry to BeagleBone
+
 	}
 }
