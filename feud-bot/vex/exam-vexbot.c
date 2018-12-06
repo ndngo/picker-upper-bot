@@ -1,10 +1,10 @@
 #pragma config(UART_Usage, UART1, uartUserControl, baudRate115200, IOPins, None, None)
 #pragma config(UART_Usage, UART2, uartNotUsed, baudRate4800, IOPins, None, None)
 #pragma config(I2C_Usage, I2C1, i2cSensors)
-#pragma config(Sensor, in1,    rightSensor,    sensorLineFollower)
+#pragma config(Sensor, in1,    rightSensor,    sensorNone)
 #pragma config(Sensor, in2,    potentio,       sensorPotentiometer)
 #pragma config(Sensor, in4,    middleSensor,   sensorLineFollower)
-#pragma config(Sensor, in5,    leftSensor,     sensorLineFollower)
+#pragma config(Sensor, in5,    leftSensor,     sensorNone)
 #pragma config(Sensor, dgtl1,  button,         sensorDigitalIn)
 #pragma config(Sensor, dgtl2,  sonarIN,        sensorSONAR_cm)
 #pragma config(Sensor, dgtl4,  touchSensor,    sensorTouch)
@@ -23,7 +23,7 @@ int oneFoot = 500;
 float ground = 500;
 float outsideTape = 500;
 float objTape = 500;
-int threshold = 1800;
+int LINE_THRESHOLD = 1800;
 const int ARM_UP_POTENTIO = 750;
 const int ARM_DOWN_POTENTIO = 800;
 int isHolding = 0;
@@ -127,15 +127,35 @@ void raiseArm(){
 
 }
 
-void driveUntil(int numOfLines){
+void driveUntilNoLines(int numOfLines){
+	writeDebugStreamLine("Driving for %d lines", numOfLines);
 		int i = 0;
-		while(i < numOfLines){
-				motor[leftMotor] = 127;
-				motor[rightMotor] = 127;
-				wait1Msec(30);
+		do{
+			motor[leftMotor] = 90;
+			motor[rightMotor] = 90;
+			if (SensorValue[middleSensor] > LINE_THRESHOLD) {
+				i++;
+				writeDebugStreamLine("Counted %d lines", i);
 			}
+			wait1Msec(40);
+		}while(i < numOfLines);
+		motor[leftMotor] = 0;
+		motor[rightMotor] = 0;
+		writeDebugStreamLine("Num of lines reached");
+
 }
 
+void driveUntilSonarDist(int sonarDist) {
+	writeDebugStreamLine("Driving until obj at %d ft", sonarDist);
+	while(SensorValue[sonarIN] > sonarDist) {
+		writeDebugStreamLine("distance: %d", SensorValue[sonarIN]);
+			motor[leftMotor] = 110;
+			motor[rightMotor] = 110;
+	}
+	writeDebugStreamLine("Sonar distance reached. Stopping...");
+	motor[leftMotor] = 0;
+	motor[rightMotor] = 0;
+}
 /** drives the robot at a specified distance with the specified speed
  * negative distances move the robot backwards
  * sign of the speed seems to have no effect
@@ -153,16 +173,16 @@ void drive(float feet, float speed) {
 }
 
 void followLines(){
-	  while(SensorValue(rightSensor) < threshold || SensorValue(middleSensor) < threshold || SensorValue(leftSensor) < threshold){
-	    if(SensorValue(rightSensor) > threshold){
+	  while(SensorValue(rightSensor) < LINE_THRESHOLD || SensorValue(middleSensor) < LINE_THRESHOLD || SensorValue(leftSensor) < LINE_THRESHOLD){
+	    if(SensorValue(rightSensor) > LINE_THRESHOLD){
 	      motor[leftMotor]  = 127;
 	      motor[rightMotor] = 0;
 	    }
-	    if(SensorValue(middleSensor) > threshold){
+	    if(SensorValue(middleSensor) > LINE_THRESHOLD){
 	      motor[leftMotor]  = 127;
 	      motor[rightMotor] = 127;
 	    }
-	    if(SensorValue(leftSensor) > threshold){
+	    if(SensorValue(leftSensor) > LINE_THRESHOLD){
 	      motor[leftMotor]  = 0;
 	      motor[rightMotor] = 127;
 	    }
@@ -189,36 +209,41 @@ task userInput() {
  		switch(rcvChar) {
  			case 'a':
  				writeDebugStreamLine("a");
-				driveUntil(3);
-				turn(-90, 60);
-				followLines();
-				driveUntil(1);
-				drive(1, 40);
+				driveUntilNoLines(3);
+				turn(90, -60);
+				wait1Msec(100);
+				driveUntilSonarDist(50);
+				//followLines();
+				//driveUntilNoLines(1);
+				//drive(1, 40);
 				raiseArm();
  				break;
  			case 'b':
  				writeDebugStreamLine("b");
- 				driveUntil(1);
- 				turn(-90, 60);
- 				followLines();
- 				driveUntil(1);
- 				drive(1, 40);
+ 				driveUntilNoLines(1);
+ 				turn(90, -60);
+ 				driveUntilSonarDist(50);
+ 				//followLines();
+ 				//driveUntilNoLines(1);
+ 				//drive(1, 40);
  				raiseArm();
  				break;
  			case 'c':
  				writeDebugStreamLine("c");
- 				driveUntil(1);
+ 				driveUntilNoLines(1);
  				turn(90, 60);
- 				driveUntil(1);
- 				drive(1, 40);
+				driveUntilSonarDist(50);
+ 				//driveUntilNoLines(1);
+ 				//drive(1, 40);
  				raiseArm();
  				break;
  			case 'd':
  				writeDebugStreamLine("d");
- 				driveUntil(3);
+ 				driveUntilNoLines(3);
  				turn(90, 60);
- 				driveUntil(1);
- 				drive(1, 40);
+ 				driveUntilSonarDist(50);
+ 				//driveUntilNoLines(1);
+ 				//drive(1, 40);
  				raiseArm();
  				break;
  			case 'x':
@@ -261,9 +286,9 @@ task main() {
 	configureSerialPort(uartOne, uartUserControl);
 	setBaudRate(uartOne, baudRate115200);
 
-	startTask(frontCollisionStop);
+	//startTask(frontCollisionStop);
 	startTask(userInput);
-	startTask(bumper);
+	//startTask(bumper);
 	while(true){
 
 	}
