@@ -131,13 +131,22 @@ void driveUntilNoLines(int numOfLines){
 	writeDebugStreamLine("Driving for %d lines", numOfLines);
 		int i = 0;
 		do{
-			motor[leftMotor] = 85;
-			motor[rightMotor] = 85;
-			if (SensorValue[middleSensor] > LINE_THRESHOLD) {
-				i++;
-				writeDebugStreamLine("Counted %d lines", i);
+			if(SensorValue[sonarIN] > 40 || SensorValue[sonarIN] == -1) {
+				writeDebugStreamLine("Sonar reading: %d", SensorValue[sonarIN]);
+				motor[leftMotor] = 85;
+				motor[rightMotor] = 85;
+				if (SensorValue[middleSensor] > LINE_THRESHOLD) {
+					i++;
+					writeDebugStreamLine("Counted %d lines", i);
+				}
+
+				wait1Msec(40);
 			}
-			wait1Msec(40);
+			else {
+				motor[leftMotor] = 0;
+				motor[rightMotor] = 0;
+				writeDebugStreamLine("Obstruction detected.");
+			}
 		}while(i < numOfLines);
 		motor[leftMotor] = 0;
 		motor[rightMotor] = 0;
@@ -201,6 +210,13 @@ void followLines(){
  	}
  }
 
+int sonarReadings[2];
+int sonarReadingCount = 0;
+void getSonarReading() {
+		sonarReadings[sonarReadingCount++] = SensorValue[sonarIN];
+		writeDebugStreamLine("sonar reading %d: %d", sonarReadingCount, SensorValue[sonarIN]);
+}
+
 //This thread will loop so long as the program is running
 task userInput() {
 	while(true){
@@ -211,40 +227,37 @@ task userInput() {
  				writeDebugStreamLine("a");
 				driveUntilNoLines(3);
 				turn(90, -60);
-				wait1Msec(100);
-				driveUntilSonarDist(30);
-				//followLines();
-				//driveUntilNoLines(1);
-				//drive(1, 40);
-				raiseArm();
+				//driveUntilSonarDist(30);
+				getSonarReading();
+				//raiseArm();
  				break;
  			case 'b':
  				writeDebugStreamLine("b");
  				driveUntilNoLines(1);
  				turn(90, -60);
- 				driveUntilSonarDist(30);
- 				//followLines();
- 				//driveUntilNoLines(1);
- 				//drive(1, 40);
- 				raiseArm();
+ 				//driveUntilSonarDist(30);
+ 				getSonarReading();
+ 				//raiseArm();
  				break;
  			case 'c':
  				writeDebugStreamLine("c");
  				driveUntilNoLines(1);
  				turn(90, 60);
-				driveUntilSonarDist(30);
- 				//driveUntilNoLines(1);
- 				//drive(1, 40);
- 				raiseArm();
+ 				getSonarReading();
+ 				turn(90,-60);
+				driveUntilNoLines(1);
+ 				turn(90, 60);
+				//driveUntilSonarDist(30);
+ 				getSonarReading();
+ 				//raiseArm();
  				break;
  			case 'd':
  				writeDebugStreamLine("d");
  				driveUntilNoLines(3);
  				turn(90, 60);
- 				driveUntilSonarDist(30);
- 				//driveUntilNoLines(1);
- 				//drive(1, 40);
- 				raiseArm();
+ 				getSonarReading();
+ 				//driveUntilSonarDist(30);
+ 				//raiseArm();
  				break;
  			case 'x':
  				writeDebugStreamLine("x");
