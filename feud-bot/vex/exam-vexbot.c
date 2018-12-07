@@ -131,8 +131,8 @@ void driveUntilNoLines(int numOfLines){
 	writeDebugStreamLine("Driving for %d lines", numOfLines);
 		int i = 0;
 		do{
-			motor[leftMotor] = 90;
-			motor[rightMotor] = 90;
+			motor[leftMotor] = 85;
+			motor[rightMotor] = 85;
 			if (SensorValue[middleSensor] > LINE_THRESHOLD) {
 				i++;
 				writeDebugStreamLine("Counted %d lines", i);
@@ -147,7 +147,7 @@ void driveUntilNoLines(int numOfLines){
 
 void driveUntilSonarDist(int sonarDist) {
 	writeDebugStreamLine("Driving until obj at %d ft", sonarDist);
-	while(SensorValue[sonarIN] > sonarDist) {
+	while(SensorValue[sonarIN] > sonarDist || SensorValue[sonarIN] == -1) {
 		writeDebugStreamLine("distance: %d", SensorValue[sonarIN]);
 			motor[leftMotor] = 110;
 			motor[rightMotor] = 110;
@@ -212,7 +212,7 @@ task userInput() {
 				driveUntilNoLines(3);
 				turn(90, -60);
 				wait1Msec(100);
-				driveUntilSonarDist(50);
+				driveUntilSonarDist(30);
 				//followLines();
 				//driveUntilNoLines(1);
 				//drive(1, 40);
@@ -222,7 +222,7 @@ task userInput() {
  				writeDebugStreamLine("b");
  				driveUntilNoLines(1);
  				turn(90, -60);
- 				driveUntilSonarDist(50);
+ 				driveUntilSonarDist(30);
  				//followLines();
  				//driveUntilNoLines(1);
  				//drive(1, 40);
@@ -232,7 +232,7 @@ task userInput() {
  				writeDebugStreamLine("c");
  				driveUntilNoLines(1);
  				turn(90, 60);
-				driveUntilSonarDist(50);
+				driveUntilSonarDist(30);
  				//driveUntilNoLines(1);
  				//drive(1, 40);
  				raiseArm();
@@ -241,7 +241,7 @@ task userInput() {
  				writeDebugStreamLine("d");
  				driveUntilNoLines(3);
  				turn(90, 60);
- 				driveUntilSonarDist(50);
+ 				driveUntilSonarDist(30);
  				//driveUntilNoLines(1);
  				//drive(1, 40);
  				raiseArm();
@@ -288,7 +288,7 @@ task main() {
 
 	//startTask(frontCollisionStop);
 	startTask(userInput);
-	//startTask(bumper);
+	startTask(bumper);
 	while(true){
 
 	}
