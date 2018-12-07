@@ -131,8 +131,7 @@ void driveUntilNoLines(int numOfLines){
 	writeDebugStreamLine("Driving for %d lines", numOfLines);
 		int i = 0;
 		do{
-			if(SensorValue[sonarIN] > 40 || SensorValue[sonarIN] == -1) {
-				writeDebugStreamLine("Sonar reading: %d", SensorValue[sonarIN]);
+			if(SensorValue[sonarIN] > 40 || SensorValue[sonarIN] < 0) {
 				motor[leftMotor] = 85;
 				motor[rightMotor] = 85;
 				if (SensorValue[middleSensor] > LINE_THRESHOLD) {
@@ -157,7 +156,6 @@ void driveUntilNoLines(int numOfLines){
 void driveUntilSonarDist(int sonarDist) {
 	writeDebugStreamLine("Driving until obj at %d ft", sonarDist);
 	while(SensorValue[sonarIN] > sonarDist || SensorValue[sonarIN] == -1) {
-		writeDebugStreamLine("distance: %d", SensorValue[sonarIN]);
 			motor[leftMotor] = 110;
 			motor[rightMotor] = 110;
 	}
@@ -217,47 +215,98 @@ void getSonarReading() {
 		writeDebugStreamLine("sonar reading %d: %d", sonarReadingCount, SensorValue[sonarIN]);
 }
 
+void searchForParkingSpot(int x) {
+
+	if (x == 1 || x == 2) {
+	// right
+
+ 		turn(90, -60);
+ 		getSonarReading();
+ 		// left
+ 		turn(90, 60);
+		driveUntilNoLines(1);
+ 		turn(90, -60);
+ 		getSonarReading();
+ 	}
+	else if (x == 3 || x == 4) {
+	// right
+
+ 		turn(90, 60);
+ 		getSonarReading();
+ 		// left
+ 		turn(90, -60);
+		driveUntilNoLines(1);
+ 		turn(90, 60);
+ 		getSonarReading();
+ 	}
+}
+
+void driveToEmptySpot(int x) {
+writeDebugStreamLine("parking spot 1: %d", sonarReadings[0]);
+writeDebugStreamLine("parking spot 2: %d", sonarReadings[1]);
+	if (x == 1 || x == 2) {
+		if (sonarReadings[0] > sonarReadings[1]) {
+			// right
+			turn(90, -60);
+			drive(2, 60);
+			driveUntilNoLines(1);
+			// left
+			turn(90, 60);
+			driveUntilSonarDist(40);
+		} else {
+			driveUntilSonarDist(40);
+		}
+	}
+	else if (x == 3  || x == 4) {
+		if (sonarReadings[0] > sonarReadings[1]) {
+			// right
+			turn(90, 60);
+			drive(2, 60);
+			driveUntilNoLines(1);
+			// left
+			turn(90, -60);
+			driveUntilSonarDist(40);
+		} else {
+			driveUntilSonarDist(40);
+		}
+	}
+}
+
+
 //This thread will loop so long as the program is running
 task userInput() {
 	while(true){
  		rcvChar = getChar(uartOne);
  		wait1Msec(30);
+ 		sonarReadingCount = 0;
  		switch(rcvChar) {
  			case 'a':
  				writeDebugStreamLine("a");
 				driveUntilNoLines(3);
-				turn(90, -60);
-				//driveUntilSonarDist(30);
-				getSonarReading();
-				//raiseArm();
+				searchForParkingSpot(1);
+				driveToEmptySpot(1);
+				raiseArm();
  				break;
  			case 'b':
  				writeDebugStreamLine("b");
  				driveUntilNoLines(1);
- 				turn(90, -60);
- 				//driveUntilSonarDist(30);
- 				getSonarReading();
- 				//raiseArm();
+ 				searchForParkingSpot(2);
+ 				driveToEmptySpot(2);
+ 				raiseArm();
  				break;
  			case 'c':
  				writeDebugStreamLine("c");
  				driveUntilNoLines(1);
- 				turn(90, 60);
- 				getSonarReading();
- 				turn(90,-60);
-				driveUntilNoLines(1);
- 				turn(90, 60);
-				//driveUntilSonarDist(30);
- 				getSonarReading();
- 				//raiseArm();
+ 				searchForParkingSpot(3);
+ 				driveToEmptySpot(3);
+ 				raiseArm();
  				break;
  			case 'd':
  				writeDebugStreamLine("d");
  				driveUntilNoLines(3);
- 				turn(90, 60);
- 				getSonarReading();
- 				//driveUntilSonarDist(30);
- 				//raiseArm();
+ 				searchForParkingSpot(4);
+ 				driveToEmptySpot(4);
+ 				raiseArm();
  				break;
  			case 'x':
  				writeDebugStreamLine("x");
